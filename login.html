@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<body class="bg-gray-900 flex items-center justify-center min-h-screen">
+    <div class="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md">
+        <div class="text-center text-white mb-4">Sign in with:</div>
+        <div class="flex justify-center space-x-4 mb-4">
+            <a href="#" class="text-gray-400"><i class="fab fa-facebook-f"></i></a>
+            <a href="/auth/google" class="text-gray-400"><i class="fab fa-google"></i></a>
+            <a href="#" class="text-gray-400"><i class="fab fa-twitter"></i></a>
+            <a href="#" class="text-gray-400"><i class="fab fa-github"></i></a>
+        </div>
+        <div class="text-center text-gray-400 mb-4">or:</div>
+        <form id="loginForm">
+            <div class="mb-4">
+                <input type="text" id="username" placeholder="Username" 
+                       class="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-blue-500"
+                       required>
+            </div>
+            <div class="mb-4">
+                <input type="password" id="password" placeholder="Password" 
+                       class="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-blue-500"
+                       required>
+            </div>
+            <div class="flex items-center mb-4">
+                <input type="checkbox" id="remember" class="mr-2">
+                <label for="remember" class="text-gray-400">Remember me</label>
+            </div>
+            <div class="text-right mb-4">
+                <a href="#" class="text-blue-500">Forgot password?</a>
+            </div>
+            <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition duration-300">
+                SIGN IN
+            </button>
+        </form>
+        <div id="message" class="text-center text-red-500 mt-4"></div>
+        <div class="text-center text-gray-400 mt-4">
+            Chưa có tài khoản? <a href="register.html" class="text-blue-500">Đăng kí ngay</a>
+        </div>
+    </div>
+
+    <script src="/assets/js/login.js"></script>
+</body>
+</html>
