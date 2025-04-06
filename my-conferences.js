@@ -9,12 +9,30 @@ document.addEventListener('DOMContentLoaded', function () {
     
     // Set up event listeners
     setupEventListeners();
+    
+    // Kiểm tra URL parameters để xem có yêu cầu đăng ký không
+    checkUrlParameters();
 });
 
+// Kiểm tra URL parameters
+function checkUrlParameters() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const registerId = urlParams.get('register');
+    
+    if (registerId) {
+        // Có yêu cầu mở modal đăng ký hội nghị
+        setTimeout(() => {
+            showConferenceDetails(registerId);
+        }, 1000); // Chờ 1 giây để các dữ liệu khác tải xong
+        
+        // Xóa parameter để tránh mở lại modal khi refresh trang
+        window.history.replaceState({}, document.title, 'my-conferences.html');
+    }
+}
 
 // Check if the user is logged in
 function checkAuthStatus() {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('authToken');
     const userProfile = document.getElementById('user-profile');
     const loginRequired = document.getElementById('login-required');
     const loginBtn = document.getElementById('login-btn');
@@ -40,7 +58,7 @@ function checkAuthStatus() {
 
 // Load user profile information
 function loadUserProfile() {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('authToken');
     
     fetch('/api/profile', {
         headers: {
@@ -62,7 +80,7 @@ function loadUserProfile() {
     .catch(error => {
         console.error('Error:', error);
         // If there's an error, it might be due to an invalid token
-        localStorage.removeItem('token');
+        localStorage.removeItem('authToken');
         checkAuthStatus();
     });
 }
@@ -173,7 +191,7 @@ function createConferenceCard(conference) {
 
 // Load user's registered conferences
 function loadRegisteredConferences() {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('authToken');
     if (!token) {
         return;
     }
@@ -304,8 +322,10 @@ function displayRegisteredConferences(registrations) {
 
 // Show conference details
 function showConferenceDetails(conferenceId) {
-    const token = localStorage.getItem('token');
-    let headers = {};
+    const token = localStorage.getItem('authToken');
+    let headers = {
+        'Content-Type': 'application/json'
+    };
     
     if (token) {
         headers['Authorization'] = `Bearer ${token}`;
@@ -316,11 +336,23 @@ function showConferenceDetails(conferenceId) {
     })
     .then(response => {
         if (!response.ok) {
-            throw new Error('Không thể lấy thông tin hội nghị');
+            if (response.status === 401) {
+                // Người dùng chưa đăng nhập
+                return response.json().then(data => {
+                    throw new Error('Vui lòng đăng nhập để xem chi tiết hội nghị');
+                });
+            }
+            return response.json().then(data => {
+                throw new Error(data.message || 'Không thể lấy thông tin hội nghị');
+            });
         }
         return response.json();
     })
     .then(data => {
+        if (!data.conference) {
+            throw new Error('Dữ liệu hội nghị không hợp lệ');
+        }
+        
         const conference = data.conference;
         
         // Format dates
@@ -357,7 +389,7 @@ function showConferenceDetails(conferenceId) {
         const registrationStatus = document.getElementById('modal-registration-status');
         
         if (token) {
-            if (conference.isRegistered) {
+            if (data.isRegistered) {
                 registerBtn.style.display = 'none';
                 unregisterBtn.style.display = 'inline-block';
                 
@@ -365,10 +397,10 @@ function showConferenceDetails(conferenceId) {
                 let statusText = 'Đã đăng ký';
                 let statusBadgeClass = 'bg-info';
                 
-                if (conference.registrationStatus === 'Đã điểm danh') {
+                if (data.registrationStatus === 'Đã điểm danh') {
                     statusText = 'Đã điểm danh';
                     statusBadgeClass = 'bg-success';
-                } else if (conference.registrationStatus === 'Vắng mặt') {
+                } else if (data.registrationStatus === 'Vắng mặt') {
                     statusText = 'Vắng mặt';
                     statusBadgeClass = 'bg-danger';
                 }
@@ -401,11 +433,30 @@ function showConferenceDetails(conferenceId) {
                 }
             }
         } else {
-            registerBtn.style.display = 'inline-block';
+            // Khi chưa đăng nhập, ẩn tất cả các nút đăng ký/hủy đăng ký trong modal
+            registerBtn.style.display = 'none';
             unregisterBtn.style.display = 'none';
+            
+            // Xóa tất cả các nút đăng nhập cũ trong footer (nếu có)
+            const modalFooter = document.querySelector('.modal-footer');
+            const oldLoginBtns = modalFooter.querySelectorAll('.login-to-register-btn');
+            oldLoginBtns.forEach(btn => modalFooter.removeChild(btn));
+            
+            // Thêm một nút đăng nhập duy nhất vào footer
+            const loginBtn = document.createElement('a');
+            loginBtn.href = 'login.html?redirect=conference&id=' + conferenceId;
+            loginBtn.className = 'btn btn-primary login-to-register-btn';
+            loginBtn.textContent = 'Đăng nhập để đăng ký';
+            loginBtn.addEventListener('click', function() {
+                // Lưu ID hội nghị vào sessionStorage để sau khi đăng nhập có thể quay lại đăng ký
+                sessionStorage.setItem('pendingRegistration', conferenceId);
+            });
+            modalFooter.appendChild(loginBtn);
+            
+            // Hiển thị thông báo yêu cầu đăng nhập
             registrationStatus.innerHTML = `
                 <div class="alert alert-warning mt-3">
-                    <i class="bi bi-exclamation-triangle me-2"></i> Vui lòng <a href="login.html">đăng nhập</a> để đăng ký tham gia
+                    <i class="bi bi-exclamation-triangle me-2"></i> Vui lòng đăng nhập để đăng ký tham gia hội nghị này
                 </div>
             `;
         }
@@ -416,18 +467,23 @@ function showConferenceDetails(conferenceId) {
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Lỗi: ' + error.message);
+        alert(error.message);
     });
 }
 
 // Register for a conference
 function registerForConference(conferenceId) {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('authToken');
+    
+    // Nếu chưa đăng nhập, chuyển hướng đến trang đăng nhập
     if (!token) {
+        // Lưu ID hội nghị vào sessionStorage để sau khi đăng nhập có thể quay lại đăng ký
+        sessionStorage.setItem('pendingRegistration', conferenceId);
         window.location.href = 'login.html';
         return;
     }
     
+    // Đã đăng nhập, tiến hành đăng ký
     fetch('/api/tham-gia-hoi-nghi', {
         method: 'POST',
         headers: {
@@ -473,7 +529,7 @@ function cancelRegistration(conferenceId) {
         return;
     }
     
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('authToken');
     if (!token) {
         window.location.href = 'login.html';
         return;
@@ -521,8 +577,8 @@ function setupEventListeners() {
     // Logout button
     document.getElementById('logout-btn').addEventListener('click', function(e) {
         e.preventDefault();
-        localStorage.removeItem('token');
-        localStorage.removeItem('username');
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userData');
         window.location.href = 'index.html';
     });
     

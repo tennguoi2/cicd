@@ -297,7 +297,7 @@ app.get('/api/hoi-nghi', async (req, res) => {
 });
 
 // Get hội nghị by ID
-app.get('/api/hoi-nghi/:id', authenticateToken, async (req, res) => {
+app.get('/api/hoi-nghi/:id', async (req, res) => {
   try {
     const hoiNghiId = req.params.id;
     
@@ -315,30 +315,8 @@ app.get('/api/hoi-nghi/:id', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: 'Không tìm thấy hội nghị' });
     }
     
-    // Get participants info if user is admin or staff
-    let participants = [];
-    if (req.user.userType === 'Admin' || req.user.userType === 'NhanVien') {
-      const participantsResult = await sql.query`
-        SELECT t.*, u.HoTen, u.Email, u.SDT, u.UserType, u.CoQuan, u.ChucVu
-        FROM ThamGiaHoiNghi t
-        JOIN Users u ON t.UserID = u.ID
-        WHERE t.ID_HoiNghi = ${hoiNghiId}
-      `;
-      participants = participantsResult.recordset;
-    }
-    
-    // Check if user has registered for this conference
-    const registration = await sql.query`
-      SELECT * FROM ThamGiaHoiNghi
-      WHERE UserID = ${req.user.id} AND ID_HoiNghi = ${hoiNghiId}
-    `;
-    
-    const isRegistered = registration.recordset.length > 0;
-    const registrationStatus = isRegistered ? registration.recordset[0].TrangThai_ThamGia : null;
-    
     const hoiNghi = result.recordset[0];
-    
-    res.json({
+    const responseData = {
       conference: {
         id: hoiNghi.ID_HoiNghi,
         tenHoiNghi: hoiNghi.Ten_HoiNghi,
@@ -348,16 +326,37 @@ app.get('/api/hoi-nghi/:id', authenticateToken, async (req, res) => {
         thoiGianKetThuc: hoiNghi.ThoiGian_KetThuc_HoiNghi,
         nguoiTao: hoiNghi.NguoiTao,
         trangThai: hoiNghi.TrangThai_HoiNghi,
-        isRegistered: isRegistered,
-        registrationStatus: registrationStatus
-      },
-      participants: participants
-    });
-  } catch (err) {
-    console.error('Error fetching conference:', err);
-    res.status(500).json({ message: 'Đã xảy ra lỗi khi lấy thông tin hội nghị' });
-  } finally {
-    sql.close();
+        isRegistered: false,
+        registrationStatus: null
+      }
+    };
+
+    // Nếu có token, kiểm tra trạng thái đăng ký
+    const token = req.headers.authorization?.split(' ')[1];
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decoded.id;
+
+        // Check if user has registered for this conference
+        const registration = await sql.query`
+          SELECT * FROM ThamGiaHoiNghi
+          WHERE UserID = ${userId} AND ID_HoiNghi = ${hoiNghiId}
+        `;
+        
+        if (registration.recordset.length > 0) {
+          responseData.conference.isRegistered = true;
+          responseData.conference.registrationStatus = registration.recordset[0].TrangThai_ThamGia;
+        }
+      } catch (error) {
+        // Token không hợp lệ, bỏ qua
+      }
+    }
+    
+    res.json(responseData);
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ message: 'Lỗi server' });
   }
 });
 

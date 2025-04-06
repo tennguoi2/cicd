@@ -9,6 +9,13 @@ function checkAuthStatus() {
     const loginButton = document.querySelector('.btn-getstarted');
     const headerContainer = document.querySelector('.header-container');
     
+    // Kiểm tra xem đã có avatar hiển thị chưa
+    const existingAvatar = document.querySelector('.user-profile.d-flex.align-items-center');
+    if (existingAvatar) {
+        // Đã có avatar hiển thị, không cần thêm nữa
+        return;
+    }
+    
     // Kiểm tra xem có token trong localStorage hoặc sessionStorage không
     const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
     

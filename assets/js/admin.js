@@ -1,18 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // ===================== INITIAL SETUP =====================
-    let currentUser = null;
-
-    // Kiểm tra đăng nhập
-    const checkAuth = () => {
-        const userData = JSON.parse(localStorage.getItem('userData') || sessionStorage.getItem('userData'));
-        if (!userData || userData.userType !== 'Admin') {
-            logout();
-            return false;
-        }
-        currentUser = userData;
-        return true;
-    };
-
+    
     // Cấu hình Axios
     const api = axios.create({
         baseURL: '/api',
