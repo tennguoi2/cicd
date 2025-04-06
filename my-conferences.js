@@ -32,7 +32,8 @@ function checkUrlParameters() {
 
 // Check if the user is logged in
 function checkAuthStatus() {
-    const token = localStorage.getItem('authToken');
+    // Check for token in both localStorage and sessionStorage
+    const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
     const userProfile = document.getElementById('user-profile');
     const loginRequired = document.getElementById('login-required');
     const loginBtn = document.getElementById('login-btn');
@@ -322,7 +323,8 @@ function displayRegisteredConferences(registrations) {
 
 // Show conference details
 function showConferenceDetails(conferenceId) {
-    const token = localStorage.getItem('authToken');
+    // Check for token in both localStorage and sessionStorage
+    const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
     let headers = {
         'Content-Type': 'application/json'
     };
@@ -473,7 +475,8 @@ function showConferenceDetails(conferenceId) {
 
 // Register for a conference
 function registerForConference(conferenceId) {
-    const token = localStorage.getItem('authToken');
+    // Check for token in both localStorage and sessionStorage
+    const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
     
     // Nếu chưa đăng nhập, chuyển hướng đến trang đăng nhập
     if (!token) {
