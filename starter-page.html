@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
-  <title>CMC Meet</title>
+  <title>CMC Meet - Hội nghị</title>
   <meta name="description" content="">
   <meta name="keywords" content="">
   <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
@@ -29,9 +29,133 @@
   <!-- Main CSS File -->
   <link href="assets/css/main.css" rel="stylesheet">
 
-
+  <style>
+    .pricing-card .status-badge {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .status-active {
+      background-color: #28a745;
+      color: white;
+    }
+    .status-ended {
+      background-color: #6c757d;
+      color: white;
+    }
+    .status-canceled {
+      background-color: #dc3545;
+      color: white;
+    }
+    .conference-date {
+      font-size: 14px;
+      color: #6c757d;
+      margin-bottom: 15px;
+    }
+    .conference-location {
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .conference-location i {
+      margin-right: 5px;
+      color: #0d6efd;
+    }
+    .btn-register {
+      width: 100%;
+      margin-top: 10px;
+    }
+    .btn-registered {
+      width: 100%;
+      margin-top: 10px;
+      background-color: #6c757d;
+    }
+    .btn-registered:hover {
+      background-color: #5a6268;
+    }
+    .registered-badge {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      background-color: #0d6efd;
+      color: white;
+    }
+    .participants-count {
+      display: flex;
+      align-items: center;
+      font-size: 14px;
+      color: #6c757d;
+      margin-bottom: 10px;
+    }
+    .participants-count i {
+      margin-right: 5px;
+    }
+    .filter-section {
+      background-color: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+    }
+    #filterForm {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    #filterForm .form-control, #filterForm .btn {
+      flex: 1;
+    }
+    @media (max-width: 768px) {
+      #filterForm {
+        flex-direction: column;
+      }
+    }
+    .empty-state {
+      text-align: center;
+      padding: 50px 0;
+    }
+    .empty-state i {
+      font-size: 50px;
+      color: #dee2e6;
+      margin-bottom: 20px;
+    }
+    .modal-footer .btn-danger {
+      margin-right: auto;
+    }
+    #conferenceDetailModal .modal-body {
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+    .conference-detail-header {
+      position: relative;
+      padding-bottom: 15px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #dee2e6;
+    }
+    .conference-meta {
+      margin-bottom: 20px;
+    }
+    .conference-meta p {
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+    }
+    .conference-meta i {
+      margin-right: 10px;
+      color: #0d6efd;
+      width: 20px;
+      text-align: center;
+    }
+  </style>
 </head>
-
 
 <body class="starter-page-page">
 
@@ -57,195 +181,78 @@
     <!-- Page Title -->
     <div class="page-title light-background">
       <div class="container">
-        <h1>Tin tức sự kiện</h1>
+        <h1>Danh sách Hội nghị</h1>
         <nav class="breadcrumbs">
           <ol>
             <li><a href="index.html">Trang chủ</a></li>
-            <li class="current">Tin tức sự kiện</li>
+            <li class="current">Hội nghị</li>
           </ol>
         </nav>
       </div>
     </div><!-- End Page Title -->
 
-    
-
-    <section id="options" class="pricing section light-background">
-      <!-- Section Title -->
-     
-
-      <div class="container" data-aos="fade-up" data-aos-delay="100">
-        <div class="row g-4 justify-content-center">
-
-          <!-- Option 1 -->
-          <div class="col-lg-4" data-aos="fade-up" data-aos-delay="100">
-            <div class="pricing-card">
-              <h3>Gói Cơ Bản</h3>
-              <p class="description">Phù hợp cho các cuộc họp nhỏ</p>
-              
-              <ul class="features-list">
-                <li>
-                  <i class="bi bi-check-circle"></i>
-                  Phòng họp tiêu chuẩn (30-50 người)
-                </li>
-                <li>
-                  <i class="bi bi-check-circle"></i>
-                  Trang thiết bị cơ bản
-                </li>
-                <li>
-                  <i class="bi bi-check-circle"></i>
-                  Hỗ trợ kỹ thuật
-                </li>
-              </ul>
-
-              <a href="#" class="btn btn-primary">
-                Đặt ngay
-                <i class="bi bi-arrow-right"></i>
-              </a>
-            </div>
-          </div>
-           <!-- Option 1 -->
-           <div class="col-lg-4" data-aos="fade-up" data-aos-delay="100">
-            <div class="pricing-card">
-              <h3>Gói Cơ Bản</h3>
-              <p class="description">Phù hợp cho các cuộc họp nhỏ</p>
-              
-              <ul class="features-list">
-                <li>
-                  <i class="bi bi-check-circle"></i>
-                  Phòng họp tiêu chuẩn (30-50 người)
-                </li>
-                <li>
-                  <i class="bi bi-check-circle"></i>
-                  Trang thiết bị cơ bản
-                </li>
-                <li>
-                  <i class="bi bi-check-circle"></i>
-                  Hỗ trợ kỹ thuật
-                </li>
-              </ul>
-
-              <a href="#" class="btn btn-primary">
-                Đặt ngay
-                <i class="bi bi-arrow-right"></i>
-              </a>
-            </div>
-          </div>
-           <!-- Option 1 -->
-           <div class="col-lg-4" data-aos="fade-up" data-aos-delay="100">
-            <div class="pricing-card">
-              <h3>Gói Cơ Bản</h3>
-              <p class="description">Phù hợp cho các cuộc họp nhỏ</p>
-              
-              <ul class="features-list">
-                <li>
-                  <i class="bi bi-check-circle"></i>
-                  Phòng họp tiêu chuẩn (30-50 người)
-                </li>
-                <li>
-                  <i class="bi bi-check-circle"></i>
-                  Trang thiết bị cơ bản
-                </li>
-                <li>
-                  <i class="bi bi-check-circle"></i>
-                  Hỗ trợ kỹ thuật
-                </li>
-              </ul>
-
-              <a href="#" class="btn btn-primary">
-                Đặt ngay
-                <i class="bi bi-arrow-right"></i>
-              </a>
-            </div>
-          </div>
-           
-           <!-- Option 1 -->
-           <div class="col-lg-4" data-aos="fade-up" data-aos-delay="100">
-            <div class="pricing-card">
-              <h3>Gói Cơ Bản</h3>
-              <p class="description">Phù hợp cho các cuộc họp nhỏ</p>
-              
-              <ul class="features-list">
-                <li>
-                  <i class="bi bi-check-circle"></i>
-                  Phòng họp tiêu chuẩn (30-50 người)
-                </li>
-                <li>
-                  <i class="bi bi-check-circle"></i>
-                  Trang thiết bị cơ bản
-                </li>
-                <li>
-                  <i class="bi bi-check-circle"></i>
-                  Hỗ trợ kỹ thuật
-                </li>
-              </ul>
-
-              <a href="#" class="btn btn-primary">
-                Đặt ngay
-                <i class="bi bi-arrow-right"></i>
-              </a>
-            </div>
-          </div>
-
-          <!-- Option 2 -->
-          <div class="col-lg-4" data-aos="fade-up" data-aos-delay="200">
-            <div class="pricing-card popular">
-              <div class="popular-badge">Phổ biến nhất</div>
-              <h3>Gói Nâng Cao</h3>
-              <p class="description">Lý tưởng cho hội nghị vừa</p>
-              
-              <ul class="features-list">
-                <li>
-                  <i class="bi bi-check-circle"></i>
-                  Phòng họp lớn (100-300 người)
-                </li>
-                <li>
-                  <i class="bi bi-check-circle"></i>
-                  Thiết bị hiện đại
-                </li>
-                <li>
-                  <i class="bi bi-check-circle"></i>
-                  Dịch vụ ăn uống
-                </li>
-              </ul>
-
-              <a href="#" class="btn btn-light">
-                Đặt ngay
-                <i class="bi bi-arrow-right"></i>
-              </a>
-            </div>
-          </div>
-
-          <!-- Option 3 -->
-          <div class="col-lg-4" data-aos="fade-up" data-aos-delay="300">
-            <div class="pricing-card">
-              <h3>Gói Cao Cấp</h3>
-              <p class="description">Dành cho sự kiện lớn</p>
-              
-              <ul class="features-list">
-                <li>
-                  <i class="bi bi-check-circle"></i>
-                  Hội trường lớn (500-1800 người)
-                </li>
-                <li>
-                  <i class="bi bi-check-circle"></i>
-                  Công nghệ tối tân
-                </li>
-                <li>
-                  <i class="bi bi-check-circle"></i>
-                  Dịch vụ trọn gói
-                </li>
-              </ul>
-
-              <a href="#" class="btn btn-primary">
-                Đặt ngay
-                <i class="bi bi-arrow-right"></i>
-              </a>
-            </div>
-          </div>
-
+    <section id="conferences" class="pricing section light-background">
+      <div class="container">
+        <!-- Filter Section -->
+        <div class="filter-section">
+          <form id="filterForm">
+            <input type="text" id="searchInput" class="form-control" placeholder="Tìm kiếm theo tên hội nghị">
+            <select id="statusFilter" class="form-control">
+              <option value="">-- Trạng thái --</option>
+              <option value="Đang diễn ra">Đang diễn ra</option>
+              <option value="Đã kết thúc">Đã kết thúc</option>
+              <option value="Đã hủy">Đã hủy</option>
+            </select>
+            <button type="button" id="filterButton" class="btn btn-primary">Lọc</button>
+            <button type="button" id="resetButton" class="btn btn-outline-secondary">Đặt lại</button>
+          </form>
         </div>
+
+        <!-- My Registered Conferences Section -->
+        <div id="myConferences" class="my-4 d-none">
+          <h3 class="mb-4">Hội nghị đã đăng ký</h3>
+          <div class="row g-4" id="myConferencesList">
+            <!-- My conferences will be loaded here -->
+          </div>
+        </div>
+
+        <!-- All Conferences Section -->
+        
       </div>
     </section>
+
+    <!-- Conference Detail Modal -->
+    <div class="modal fade" id="conferenceDetailModal" tabindex="-1" aria-labelledby="conferenceDetailModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="conferenceDetailModalLabel">Chi tiết hội nghị</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="conference-detail-header">
+              <h3 id="modalTitle"></h3>
+              <div id="modalStatus" class="badge"></div>
+            </div>
+            <div class="conference-meta">
+              <p><i class="bi bi-calendar-event"></i> <span id="modalDate"></span></p>
+              <p><i class="bi bi-geo-alt"></i> <span id="modalLocation"></span></p>
+              <p><i class="bi bi-person"></i> <span id="modalCreator"></span></p>
+              <p><i class="bi bi-people"></i> <span id="modalParticipants"></span></p>
+            </div>
+            <div class="conference-description">
+              <h5>Mô tả</h5>
+              <p id="modalDescription"></p>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-danger d-none" id="cancelRegistrationBtn">Hủy đăng ký</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            <button type="button" class="btn btn-primary" id="registerBtn">Đăng ký tham gia</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
   </main>
 
@@ -268,7 +275,12 @@
   <script src="/assets/js/footer.js"></script>
   <!-- Auth JS File for handling user authentication -->
   <script src="/assets/js/auth.js"></script>
+  <script src="/assets/js/api.js"></script>
+  <!-- Conference functionality -->
+  <script src="/assets/js/starter-page.js"></script>
 
+
+  
 </body>
 
 </html>

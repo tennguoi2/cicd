@@ -3,93 +3,539 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Page</title>
+    <title>Mini PUBG Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #222;
             font-family: Arial, sans-serif;
+        }
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background-color: #4a752c;
+            overflow: hidden;
+        }
+        #player {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-color: #3498db;
+            border-radius: 50%;
+            z-index: 10;
+            transition: transform 0.1s;
+        }
+        #player::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            background-color: #2980b9;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .enemy {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-color: #e74c3c;
+            border-radius: 50%;
+            z-index: 5;
+        }
+        .bullet {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background-color: #f1c40f;
+            border-radius: 50%;
+            z-index: 8;
+        }
+        .tree {
+            position: absolute;
+            width: 30px;
+            height: 60px;
+            background-color: #27ae60;
+            border-radius: 10px;
+            z-index: 2;
+        }
+        .rock {
+            position: absolute;
+            width: 40px;
+            height: 30px;
+            background-color: #7f8c8d;
+            border-radius: 5px;
+            z-index: 2;
+        }
+        #hud {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            z-index: 100;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 5px;
+        }
+        #health-bar {
+            width: 200px;
+            height: 20px;
+            background-color: #555;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        #health-fill {
+            height: 100%;
+            width: 100%;
+            background-color: #e74c3c;
+            transition: width 0.3s;
+        }
+        #crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30px;
+            height: 30px;
+            z-index: 50;
+            pointer-events: none;
+        }
+        #crosshair::before, #crosshair::after {
+            content: '';
+            position: absolute;
+            background-color: white;
+        }
+        #crosshair::before {
+            width: 2px;
+            height: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        #crosshair::after {
+            width: 30px;
+            height: 2px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        #game-over {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            background-color: #f4f4f4;
+            color: white;
+            z-index: 200;
+            display: none;
         }
-        .login-container {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            width: 300px;
-        }
-        input {
+        #start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 200;
         }
-        button {
-            width: 100%;
-            padding: 10px;
-            background: blue;
+        .btn {
+            background-color: #3498db;
             color: white;
             border: none;
+            padding: 10px 20px;
+            margin-top: 20px;
             border-radius: 5px;
             cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
         }
-        button:hover {
-            background: darkblue;
-        }
-        .message {
-            margin-top: 10px;
-            color: red;
+        .btn:hover {
+            background-color: #2980b9;
         }
     </style>
 </head>
 <body>
-    <div class="login-container">
-        <h2>Login</h2>
-        <input type="text" id="username" placeholder="Username">
-        <input type="password" id="password" placeholder="Password">
-        <button onclick="login()">Login</button>
-        <p class="message" id="message"></p>
+    <div id="game-container">
+        <div id="player"></div>
+        <div id="crosshair"></div>
+        
+        <div id="hud">
+            <div>Kills: <span id="kills">0</span></div>
+            <div>Health:</div>
+            <div id="health-bar">
+                <div id="health-fill"></div>
+            </div>
+        </div>
+        
+        <div id="game-over">
+            <h1 class="text-4xl font-bold mb-4">Game Over</h1>
+            <p class="text-xl">Your score: <span id="final-score">0</span></p>
+            <button id="restart-btn" class="btn">Play Again</button>
+        </div>
+        
+        <div id="start-screen">
+            <h1 class="text-5xl font-bold mb-8">MINI PUBG</h1>
+            <p class="text-xl mb-4">Use WASD to move, mouse to aim, click to shoot</p>
+            <button id="start-btn" class="btn">Start Game</button>
+        </div>
     </div>
 
     <script>
-        async function login() {
-            const username = document.getElementById("username").value;
-            const password = document.getElementById("password").value;
-            const message = document.getElementById("message");
-
-            if (!username || !password) {
-                message.textContent = "Please enter both username and password.";
-                return;
-            }
-
-            const response = await fetch("https://localhost:7247/api/user/login", {
-                method: "POST",
-                headers: {
-                    "Accept": "application/json",
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    username: username,
-                    userPW: password
-                })
-            });
-
-            const result = await response.json();
-
-            if (response.ok) {
-                message.style.color = "green";
-                message.textContent = "Login successful!";
-                setTimeout(() => {
-                    window.location.href = "/index.html"; // Chuyển hướng đến trang dashboard.html
-                }, 1000);
-                // Redirect or handle successful login
-            } else {
-                message.textContent = result.message || "Login failed!";
+        // Game variables
+        const gameContainer = document.getElementById('game-container');
+        const player = document.getElementById('player');
+        const hud = document.getElementById('hud');
+        const healthFill = document.getElementById('health-fill');
+        const killsDisplay = document.getElementById('kills');
+        const gameOverScreen = document.getElementById('game-over');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const restartBtn = document.getElementById('restart-btn');
+        const startScreen = document.getElementById('start-screen');
+        const startBtn = document.getElementById('start-btn');
+        
+        let playerX = 400;
+        let playerY = 300;
+        let playerSpeed = 5;
+        let playerHealth = 100;
+        let kills = 0;
+        let gameRunning = false;
+        
+        let keys = {
+            w: false,
+            a: false,
+            s: false,
+            d: false
+        };
+        
+        let enemies = [];
+        let bullets = [];
+        let obstacles = [];
+        
+        // Initialize game
+        function initGame() {
+            // Reset player
+            playerX = gameContainer.clientWidth / 2;
+            playerY = gameContainer.clientHeight / 2;
+            playerHealth = 100;
+            kills = 0;
+            killsDisplay.textContent = kills;
+            updateHealth();
+            
+            // Clear existing elements
+            enemies.forEach(enemy => enemy.remove());
+            bullets.forEach(bullet => bullet.remove());
+            obstacles.forEach(obstacle => obstacle.remove());
+            
+            enemies = [];
+            bullets = [];
+            obstacles = [];
+            
+            // Create obstacles (trees and rocks)
+            createObstacles();
+            
+            // Start game loop
+            gameRunning = true;
+            gameOverScreen.style.display = 'none';
+            
+            // Start enemy spawner
+            enemySpawner();
+        }
+        
+        // Create random obstacles
+        function createObstacles() {
+            const obstacleCount = 20;
+            
+            for (let i = 0; i < obstacleCount; i++) {
+                const obstacleType = Math.random() > 0.5 ? 'tree' : 'rock';
+                const obstacle = document.createElement('div');
+                obstacle.className = obstacleType;
+                
+                let x, y;
+                let validPosition = false;
+                
+                // Make sure obstacles don't spawn on player
+                while (!validPosition) {
+                    x = Math.random() * (gameContainer.clientWidth - 50);
+                    y = Math.random() * (gameContainer.clientHeight - 50);
+                    
+                    // Check distance from player
+                    const distToPlayer = Math.sqrt(Math.pow(x - playerX, 2) + Math.pow(y - playerY, 2));
+                    if (distToPlayer > 100) {
+                        validPosition = true;
+                    }
+                }
+                
+                obstacle.style.left = x + 'px';
+                obstacle.style.top = y + 'px';
+                gameContainer.appendChild(obstacle);
+                obstacles.push(obstacle);
             }
         }
+        
+        // Enemy spawner
+        function enemySpawner() {
+            if (!gameRunning) return;
+            
+            setTimeout(() => {
+                if (gameRunning) {
+                    spawnEnemy();
+                    enemySpawner();
+                }
+            }, 2000);
+        }
+        
+        // Spawn a new enemy
+        function spawnEnemy() {
+            const enemy = document.createElement('div');
+            enemy.className = 'enemy';
+            
+            // Spawn at edge of screen
+            let x, y;
+            const edge = Math.floor(Math.random() * 4); // 0: top, 1: right, 2: bottom, 3: left
+            
+            if (edge === 0) { // top
+                x = Math.random() * gameContainer.clientWidth;
+                y = -30;
+            } else if (edge === 1) { // right
+                x = gameContainer.clientWidth;
+                y = Math.random() * gameContainer.clientHeight;
+            } else if (edge === 2) { // bottom
+                x = Math.random() * gameContainer.clientWidth;
+                y = gameContainer.clientHeight;
+            } else { // left
+                x = -30;
+                y = Math.random() * gameContainer.clientHeight;
+            }
+            
+            enemy.style.left = x + 'px';
+            enemy.style.top = y + 'px';
+            gameContainer.appendChild(enemy);
+            
+            enemies.push({
+                element: enemy,
+                x: parseFloat(x),
+                y: parseFloat(y),
+                speed: 1 + Math.random() * 2,
+                health: 3
+            });
+        }
+        
+        // Update player position
+        function updatePlayerPosition() {
+            let moveX = 0;
+            let moveY = 0;
+            
+            if (keys.w) moveY -= playerSpeed;
+            if (keys.a) moveX -= playerSpeed;
+            if (keys.s) moveY += playerSpeed;
+            if (keys.d) moveX += playerSpeed;
+            
+            // Normalize diagonal movement
+            if (moveX !== 0 && moveY !== 0) {
+                moveX *= 0.7071; // 1/sqrt(2)
+                moveY *= 0.7071;
+            }
+            
+            // Calculate new position
+            let newX = playerX + moveX;
+            let newY = playerY + moveY;
+            
+            // Boundary checking
+            newX = Math.max(20, Math.min(gameContainer.clientWidth - 20, newX));
+            newY = Math.max(20, Math.min(gameContainer.clientHeight - 20, newY));
+            
+            // Obstacle collision
+            let canMove = true;
+            obstacles.forEach(obstacle => {
+                const rect = obstacle.getBoundingClientRect();
+                const obstacleX = rect.left + rect.width / 2;
+                const obstacleY = rect.top + rect.height / 2;
+                const obstacleWidth = rect.width;
+                const obstacleHeight = rect.height;
+                
+                // Simple circle-rectangle collision detection
+                const distX = Math.abs(newX - obstacleX);
+                const distY = Math.abs(newY - obstacleY);
+                
+                if (distX <= (obstacleWidth / 2 + 20) && 
+                    distY <= (obstacleHeight / 2 + 20)) {
+                    canMove = false;
+                }
+            });
+            
+            if (canMove) {
+                playerX = newX;
+                playerY = newY;
+            }
+            
+            player.style.left = playerX + 'px';
+            player.style.top = playerY + 'px';
+        }
+        
+        // Update enemy positions
+        function updateEnemies() {
+            enemies.forEach((enemy, index) => {
+                // Move towards player
+                const dx = playerX - enemy.x;
+                const dy = playerY - enemy.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                
+                if (dist > 0) {
+                    enemy.x += (dx / dist) * enemy.speed;
+                    enemy.y += (dy / dist) * enemy.speed;
+                }
+                
+                enemy.element.style.left = enemy.x + 'px';
+                enemy.element.style.top = enemy.y + 'px';
+                
+                // Check collision with player
+                if (dist < 30) {
+                    playerHealth -= 1;
+                    updateHealth();
+                    
+                    if (playerHealth <= 0) {
+                        gameOver();
+                    }
+                }
+                
+                // Check if enemy is hit by bullet
+                bullets.forEach((bullet, bulletIndex) => {
+                    const bulletX = parseFloat(bullet.style.left);
+                    const bulletY = parseFloat(bullet.style.top);
+                    const bulletDist = Math.sqrt(Math.pow(enemy.x - bulletX, 2) + Math.pow(enemy.y - bulletY, 2));
+                    
+                    if (bulletDist < 15) {
+                        enemy.health--;
+                        
+                        // Remove bullet
+                        bullet.remove();
+                        bullets.splice(bulletIndex, 1);
+                        
+                        if (enemy.health <= 0) {
+                            // Remove enemy
+                            enemy.element.remove();
+                            enemies.splice(index, 1);
+                            kills++;
+                            killsDisplay.textContent = kills;
+                        }
+                    }
+                });
+            });
+        }
+        
+        // Update bullet positions
+        function updateBullets() {
+            bullets.forEach((bullet, index) => {
+                const angle = parseFloat(bullet.dataset.angle);
+                const speed = 10;
+                
+                const currentX = parseFloat(bullet.style.left);
+                const currentY = parseFloat(bullet.style.top);
+                
+                const newX = currentX + Math.cos(angle) * speed;
+                const newY = currentY + Math.sin(angle) * speed;
+                
+                bullet.style.left = newX + 'px';
+                bullet.style.top = newY + 'px';
+                
+                // Remove if out of bounds
+                if (newX < 0 || newX > gameContainer.clientWidth || 
+                    newY < 0 || newY > gameContainer.clientHeight) {
+                    bullet.remove();
+                    bullets.splice(index, 1);
+                }
+            });
+        }
+        
+        // Update health display
+        function updateHealth() {
+            healthFill.style.width = playerHealth + '%';
+            
+            if (playerHealth > 70) {
+                healthFill.style.backgroundColor = '#2ecc71';
+            } else if (playerHealth > 30) {
+                healthFill.style.backgroundColor = '#f39c12';
+            } else {
+                healthFill.style.backgroundColor = '#e74c3c';
+            }
+        }
+        
+        // Game over
+        function gameOver() {
+            gameRunning = false;
+            finalScoreDisplay.textContent = kills;
+            gameOverScreen.style.display = 'flex';
+        }
+        
+        // Game loop
+        function gameLoop() {
+            if (gameRunning) {
+                updatePlayerPosition();
+                updateEnemies();
+                updateBullets();
+            }
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Event listeners
+        document.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() === 'w') keys.w = true;
+            if (e.key.toLowerCase() === 'a') keys.a = true;
+            if (e.key.toLowerCase() === 's') keys.s = true;
+            if (e.key.toLowerCase() === 'd') keys.d = true;
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            if (e.key.toLowerCase() === 'w') keys.w = false;
+            if (e.key.toLowerCase() === 'a') keys.a = false;
+            if (e.key.toLowerCase() === 's') keys.s = false;
+            if (e.key.toLowerCase() === 'd') keys.d = false;
+        });
+        
+        gameContainer.addEventListener('click', (e) => {
+            if (!gameRunning) return;
+            
+            // Create bullet
+            const bullet = document.createElement('div');
+            bullet.className = 'bullet';
+            
+            const angle = Math.atan2(
+                e.clientY - playerY,
+                e.clientX - playerX
+            );
+            
+            bullet.style.left = playerX + 'px';
+            bullet.style.top = playerY + 'px';
+            bullet.dataset.angle = angle;
+            
+            gameContainer.appendChild(bullet);
+            bullets.push(bullet);
+        });
+        
+        startBtn.addEventListener('click', () => {
+            startScreen.style.display = 'none';
+            initGame();
+        });
+        
+        restartBtn.addEventListener('click', () => {
+            initGame();
+        });
+        
+        // Start the game loop
+        gameLoop();
     </script>
 </body>
 </html>

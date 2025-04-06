@@ -14,7 +14,7 @@ CREATE TABLE Users (
     NgayTao DATETIME DEFAULT GETDATE() NOT NULL,
     TrangThai NVARCHAR(50) DEFAULT N'Hoạt động' CHECK (TrangThai IN (N'Hoạt động', N'Đã xóa'))
 );
-select * from Users
+
 CREATE TABLE HoiNghi (
     ID_HoiNghi INT IDENTITY(1,1) PRIMARY KEY,
     Ten_HoiNghi NVARCHAR(255) NOT NULL,
@@ -40,3 +40,6 @@ CREATE TABLE ThamGiaHoiNghi (
     FOREIGN KEY (UserID) REFERENCES Users(ID) ON DELETE CASCADE,
     FOREIGN KEY (ID_HoiNghi) REFERENCES HoiNghi(ID_HoiNghi) ON DELETE CASCADE
 );
+select * from HoiNghi
+
+delete from Users where ID = 11
