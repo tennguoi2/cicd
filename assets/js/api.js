@@ -18,7 +18,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 const dbConfig = {
   user: process.env.DB_USER || 'sa',
   password: process.env.DB_PASSWORD || '123',
-  server: 192.168.0.18,
+  server: process.env.DB_SERVER || 192.168.0.18,
   database: process.env.DB_NAME || 'login',
   options: {
     encrypt: true,
