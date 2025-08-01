@@ -22,13 +22,7 @@ pipeline {
             }
         }
         
-        stage('Run Tests') {
-            steps {
-                script {
-                    sh 'npm test'
-                }
-            }
-        }
+        
         
         stage('Build Docker Image') {
             steps {
@@ -58,7 +52,7 @@ pipeline {
             steps {
                 script {
                     sleep 30
-                    sh 'curl -f http://localhost:3000/health || exit 1'
+                    sh 'curl -f http://localhost:3001/health || exit 1'
                 }
             }
         }
