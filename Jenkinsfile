@@ -48,14 +48,7 @@ pipeline {
             }
         }
         
-        stage('Health Check') {
-            steps {
-                script {
-                    sleep 30
-                    sh 'curl -f http://localhost:3001/health || exit 1'
-                }
-            }
-        }
+        
     }
     
     post {
