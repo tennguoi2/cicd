@@ -2,28 +2,24 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
-const sql = require('mssql');
+const mysql = require('mysql2/promise');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const path = require('path');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT;
 
 // JWT secret key
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 // Database config
 const dbConfig = {
-  user: process.env.DB_USER || 'sa',
-  password: process.env.DB_PASSWORD || '123',
-  server: process.env.DB_SERVER || 'PC',
-  database: process.env.DB_NAME || 'login',
-  options: {
-    encrypt: true,
-    trustServerCertificate: true
-  }
+  host:  'localhost',
+  user: 'root',
+  password:  'minh152005minh',
+  database: 'login'
 };
 
 // Middleware
@@ -83,54 +79,44 @@ const isAdminOrStaff = (req, res, next) => {
 app.post('/api/register', async (req, res) => {
   try {
     const { username, password, userType, hoTen, sdt, email, coQuan, chucVu, role } = req.body;
-    
-    // Validate required fields
     if (!username || !password || !userType || !hoTen || !email) {
       return res.status(400).json({ message: 'Vui lòng điền đầy đủ thông tin bắt buộc' });
     }
-    
-    // Connect to database
-    await sql.connect(dbConfig);
-    
-    // Check if username already exists
-    const checkUser = await sql.query`SELECT ID FROM Users WHERE Username = ${username}`;
-    if (checkUser.recordset.length > 0) {
+    const connection = await mysql.createConnection(dbConfig);
+    // Check if username exists
+    const [userRows] = await connection.execute('SELECT ID FROM Users WHERE Username = ?', [username]);
+    if (userRows.length > 0) {
+      await connection.end();
       return res.status(400).json({ message: 'Tên đăng nhập đã tồn tại' });
     }
-    
-    // Check if email already exists
-    const checkEmail = await sql.query`SELECT ID FROM Users WHERE Email = ${email}`;
-    if (checkEmail.recordset.length > 0) {
+    // Check if email exists
+    const [emailRows] = await connection.execute('SELECT ID FROM Users WHERE Email = ?', [email]);
+    if (emailRows.length > 0) {
+      await connection.end();
       return res.status(400).json({ message: 'Email đã được sử dụng' });
     }
-    
-    // Check if phone number already exists if provided
+    // Check if phone number exists
     if (sdt) {
-      const checkSDT = await sql.query`SELECT ID FROM Users WHERE SDT = ${sdt}`;
-      if (checkSDT.recordset.length > 0) {
+      const [sdtRows] = await connection.execute('SELECT ID FROM Users WHERE SDT = ?', [sdt]);
+      if (sdtRows.length > 0) {
+        await connection.end();
         return res.status(400).json({ message: 'Số điện thoại đã được sử dụng' });
       }
     }
-    
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
-    
-    // Set role based on userType
     let userRole = role;
     if (!userRole && (userType === 'NhanVien' || userType === 'Admin')) {
       userRole = userType;
     }
-    
     // Insert new user
-    const result = await sql.query`
-      INSERT INTO Users (Username, UserPW, UserType, HoTen, SDT, Email, CoQuan, ChucVu, Role)
-      VALUES (${username}, ${hashedPassword}, ${userType}, ${hoTen}, ${sdt || null}, ${email}, ${coQuan || null}, ${chucVu || null}, ${userRole || null})
-      SELECT SCOPE_IDENTITY() AS ID
-    `;
-    
-    const userId = result.recordset[0].ID;
-    
-    // Return success response
+    const [result] = await connection.execute(
+      `INSERT INTO Users (Username, UserPW, UserType, HoTen, SDT, Email, CoQuan, ChucVu, Role)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [username, hashedPassword, userType, hoTen, sdt || null, email, coQuan || null, chucVu || null, userRole || null]
+    );
+    const userId = result.insertId;
+    await connection.end();
     res.status(201).json({
       message: 'Đăng ký thành công',
       id: userId,
@@ -139,8 +125,6 @@ app.post('/api/register', async (req, res) => {
   } catch (err) {
     console.error('Registration error:', err);
     res.status(500).json({ message: 'Đã xảy ra lỗi khi đăng ký. Vui lòng thử lại.' });
-  } finally {
-    sql.close();
   }
 });
 
@@ -148,44 +132,30 @@ app.post('/api/register', async (req, res) => {
 app.post('/api/login', async (req, res) => {
   try {
     const { Username, Password } = req.body;
-    
-    // Validate required fields
     if (!Username || !Password) {
       return res.status(400).json({ message: 'Vui lòng cung cấp tên đăng nhập và mật khẩu' });
     }
-    
-    // Connect to database
-    await sql.connect(dbConfig);
-    
-    // Get user
-    const result = await sql.query`
-      SELECT ID, Username, UserPW, UserType, HoTen, Email, SDT, CoQuan, ChucVu, TrangThai
-      FROM Users
-      WHERE Username = ${Username}
-    `;
-    
-    // Check if user exists
-    if (result.recordset.length === 0) {
+    const connection = await mysql.createConnection(dbConfig);
+    const [rows] = await connection.execute(
+      `SELECT ID, Username, UserPW, UserType, HoTen, Email, SDT, CoQuan, ChucVu, TrangThai FROM Users WHERE Username = ?`,
+      [Username]
+    );
+    if (rows.length === 0) {
+      await connection.end();
       return res.status(401).json({ message: 'Tên đăng nhập hoặc mật khẩu không đúng' });
     }
-    
-    const user = result.recordset[0];
-    
-    // Check if user is active
+    const user = rows[0];
     if (user.TrangThai === 'Đã xóa') {
+      await connection.end();
       return res.status(401).json({ message: 'Tài khoản này đã bị vô hiệu hóa' });
     }
-    
-    // Check password
     const isPasswordValid = await bcrypt.compare(Password, user.UserPW);
     if (!isPasswordValid) {
+      await connection.end();
       return res.status(401).json({ message: 'Tên đăng nhập hoặc mật khẩu không đúng' });
     }
-    
-    // Generate token
     const token = generateToken(user);
-    
-    // Return user info and token
+    await connection.end();
     res.json({
       id: user.ID,
       username: user.Username,
@@ -198,28 +168,22 @@ app.post('/api/login', async (req, res) => {
   } catch (err) {
     console.error('Login error:', err);
     res.status(500).json({ message: 'Đã xảy ra lỗi khi đăng nhập. Vui lòng thử lại.' });
-  } finally {
-    sql.close();
   }
 });
 
 // Get user profile
 app.get('/api/profile', authenticateToken, async (req, res) => {
   try {
-    await sql.connect(dbConfig);
-    
-    const result = await sql.query`
-      SELECT ID, Username, UserType, HoTen, Email, SDT, CoQuan, ChucVu, Role
-      FROM Users
-      WHERE ID = ${req.user.id}
-    `;
-    
-    if (result.recordset.length === 0) {
+    const connection = await mysql.createConnection(dbConfig);
+    const [rows] = await connection.execute(
+      `SELECT ID, Username, UserType, HoTen, Email, SDT, CoQuan, ChucVu, Role FROM Users WHERE ID = ?`,
+      [req.user.id]
+    );
+    await connection.end();
+    if (rows.length === 0) {
       return res.status(404).json({ message: 'Không tìm thấy người dùng' });
     }
-    
-    const user = result.recordset[0];
-    
+    const user = rows[0];
     res.json({
       id: user.ID,
       username: user.Username,
@@ -234,28 +198,21 @@ app.get('/api/profile', authenticateToken, async (req, res) => {
   } catch (err) {
     console.error('Error fetching profile:', err);
     res.status(500).json({ message: 'Đã xảy ra lỗi khi lấy thông tin người dùng' });
-  } finally {
-    sql.close();
   }
 });
 
 // Admin: Get all users
 app.get('/api/users', authenticateToken, isAdmin, async (req, res) => {
   try {
-    await sql.connect(dbConfig);
-    
-    const result = await sql.query`
-      SELECT ID, Username, UserType, HoTen, Email, SDT, CoQuan, ChucVu, NgayTao, TrangThai
-      FROM Users
-      ORDER BY NgayTao DESC
-    `;
-    
-    res.json(result.recordset);
+    const connection = await mysql.createConnection(dbConfig);
+    const [rows] = await connection.execute(
+      `SELECT ID, Username, UserType, HoTen, Email, SDT, CoQuan, ChucVu, NgayTao, TrangThai FROM Users ORDER BY NgayTao DESC`
+    );
+    await connection.end();
+    res.json(rows);
   } catch (err) {
     console.error('Error fetching users:', err);
     res.status(500).json({ message: 'Đã xảy ra lỗi khi lấy danh sách người dùng' });
-  } finally {
-    sql.close();
   }
 });
 
@@ -264,18 +221,16 @@ app.get('/api/users', authenticateToken, isAdmin, async (req, res) => {
 // Get all hội nghị
 app.get('/api/hoi-nghi', async (req, res) => {
   try {
-    await sql.connect(dbConfig);
-    
-    // Get all hội nghị
-    const result = await sql.query`
-      SELECT h.*, u.HoTen as NguoiTao,
+    const connection = await mysql.createConnection(dbConfig);
+    const [rows] = await connection.execute(
+      `SELECT h.*, u.HoTen as NguoiTao,
             (SELECT COUNT(*) FROM ThamGiaHoiNghi WHERE ID_HoiNghi = h.ID_HoiNghi) as SoNguoiThamGia
       FROM HoiNghi h
       LEFT JOIN Users u ON h.UserID_NguoiTao = u.ID
-      ORDER BY h.ThoiGian_BatDau_HoiNghi DESC
-    `;
-    
-    const hoiNghi = result.recordset.map(item => ({
+      ORDER BY h.ThoiGian_BatDau_HoiNghi DESC`
+    );
+    await connection.end();
+    const hoiNghi = rows.map(item => ({
       id: item.ID_HoiNghi,
       tenHoiNghi: item.Ten_HoiNghi,
       moTa: item.MoTa,
@@ -286,13 +241,10 @@ app.get('/api/hoi-nghi', async (req, res) => {
       trangThai: item.TrangThai_HoiNghi,
       soNguoiThamGia: item.SoNguoiThamGia
     }));
-    
     res.json(hoiNghi);
   } catch (err) {
     console.error('Error fetching conferences:', err);
     res.status(500).json({ message: 'Đã xảy ra lỗi khi lấy danh sách hội nghị' });
-  } finally {
-    sql.close();
   }
 });
 
