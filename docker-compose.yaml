@@ -1,0 +1,46 @@
+version: '3'
+services:
+  app:
+    build: .
+    ports:
+      - "4000:3001"
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db
+      DB_USER: root
+      DB_PASSWORD: minh152005minh
+      DB_NAME: login
+      PORT: 3001
+
+  db:
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: minh152005minh
+      MYSQL_DATABASE: login
+    volumes:
+      - dbdata:/var/lib/mysql
+
+  mysqld-exporter:
+    image: prom/mysqld-exporter
+    ports:
+      - "9104:9104"
+    environment:
+      DATA_SOURCE_NAME: "root:minh152005minh@(db:3306)/login"
+
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9091:9090"
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3002:3000"
+    depends_on:
+      - prometheus
+
+volumes:
+  dbdata:

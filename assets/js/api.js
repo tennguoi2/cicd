@@ -6,6 +6,7 @@ const mysql = require('mysql2/promise');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const path = require('path');
+const client = require('prom-client');
 require('dotenv').config();
 
 const app = express();
@@ -21,6 +22,15 @@ const dbConfig = {
   password:  'minh152005minh',
   database: 'login'
 };
+const collectDefaultMetrics = client.collectDefaultMetrics;
+collectDefaultMetrics({ register: client.register });
+
+
+// Endpoint cho Prometheus
+app.get('/metrics', async (req, res) => {
+  res.set('Content-Type', client.register.contentType);
+  res.end(await client.register.metrics());
+});
 
 // Middleware
 app.use(bodyParser.json());
