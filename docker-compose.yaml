@@ -5,7 +5,7 @@ services:
     ports:
       - "4000:3001"
     depends_on:
-      - localhost
+      - db
     environment:
       DB_HOST: localhost
       DB_USER: root
