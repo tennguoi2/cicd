@@ -1,14 +1,8 @@
-FROM node:18
-
+=FROM node:18
 WORKDIR /app
-
 COPY package*.json ./
-
-RUN npm install && npm install nodemon --save-dev
-
+RUN npm install
 COPY . .
-
-EXPOSE 3000
-
+EXPOSE 3001
 ENV PORT=3001
-CMD ["npx", "nodemon", "assets/js/api.js"]
+CMD ["node", "assets/js/api.js"]
