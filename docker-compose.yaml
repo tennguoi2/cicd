@@ -5,9 +5,9 @@ services:
     ports:
       - "4000:3001"
     depends_on:
-      - db
+      - localhost
     environment:
-      DB_HOST: db
+      DB_HOST: localhost
       DB_USER: root
       DB_PASSWORD: minh152005minh
       DB_NAME: login

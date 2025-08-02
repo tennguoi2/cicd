@@ -17,10 +17,10 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 // Database config
 const dbConfig = {
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'login'
+  host:  'localhost',
+  user: 'root',
+  password:  'minh152005minh',
+  database: 'login'
 };
 const collectDefaultMetrics = client.collectDefaultMetrics;
 collectDefaultMetrics({ register: client.register });
