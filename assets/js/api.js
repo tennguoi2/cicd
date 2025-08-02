@@ -16,12 +16,13 @@ const PORT = process.env.PORT;
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 // Database config
-const dbConfig = {
-  host:  'localhost',
-  user: 'root',
-  password:  'minh152005minh',
-  database: 'login'
-};
+
+const dbConfig = ({
+  host: process.env.DB_HOST, // <-- SỬA LẠI THÀNH ĐÂY
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME
+});
 const collectDefaultMetrics = client.collectDefaultMetrics;
 collectDefaultMetrics({ register: client.register });
 
